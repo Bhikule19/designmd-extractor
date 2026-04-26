@@ -120,23 +120,24 @@ const ENTRIES: Entry[] = [
       </>
     ),
   },
-  {
-    date: "2026-04-26",
-    tag: "shipped",
-    title: "BYOK AI prose, off by default",
-    body: (
-      <>
-        Plug in an OpenRouter / Anthropic / Groq key to generate prose for
-        Overview, Components, and Voice notes. AI sections are explicitly
-        badged{" "}
-        <span className="pill is-ai" style={{ verticalAlign: "middle" }}>
-          AI-GENERATED
-        </span>{" "}
-        and underlined with a dotted line so readers can tell which words came
-        from a model. The default extraction path remains 100% deterministic.
-      </>
-    ),
-  },
+  // — BYOK AI prose changelog entry hidden until the feature returns —
+  // {
+  //   date: "2026-04-26",
+  //   tag: "shipped",
+  //   title: "BYOK AI prose, off by default",
+  //   body: (
+  //     <>
+  //       Plug in an OpenRouter / Anthropic / Groq key to generate prose for
+  //       Overview, Components, and Voice notes. AI sections are explicitly
+  //       badged{" "}
+  //       <span className="pill is-ai" style={{ verticalAlign: "middle" }}>
+  //         AI-GENERATED
+  //       </span>{" "}
+  //       and underlined with a dotted line so readers can tell which words came
+  //       from a model. The default extraction path remains 100% deterministic.
+  //     </>
+  //   ),
+  // },
   {
     date: "2026-04-26",
     tag: "shipped",

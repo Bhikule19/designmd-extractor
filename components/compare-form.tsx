@@ -174,7 +174,7 @@ export function CompareForm() {
           }}
         >
           <span className="t-caption">
-            [ side-by-side · OKLCH ΔE2000 matched · BYOK prose disabled ]
+            [ side-by-side · OKLCH ΔE2000 matched · deterministic ]
           </span>
           <button
             type="submit"

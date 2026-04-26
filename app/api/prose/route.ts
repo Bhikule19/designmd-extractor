@@ -1,4 +1,31 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/**
+ * AI prose generation is disabled in v0.1.x. The extractor's deterministic
+ * path is the only path the public surface exposes today. We will turn this
+ * route back on once the productionised BYOK flow ships — the original
+ * implementation is preserved below for easy reinstatement.
+ */
+export async function POST() {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: {
+        code: "AI_PROSE_DISABLED",
+        message:
+          "The optional AI prose layer is temporarily disabled. Extraction itself remains fully deterministic.",
+      },
+    },
+    { status: 501 }
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Original implementation — re-enable when AI prose returns.
+
 import { z } from "zod";
 import {
   buildSectionPrompt,
@@ -6,9 +33,6 @@ import {
   type ProseSection,
 } from "@/lib/ai/prompts";
 import { streamProse, type AiProvider } from "@/lib/ai/providers";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 const sectionEnum = z.enum(["overview", "components", "guidelines"]);
 const providerEnum = z.enum(["openrouter", "anthropic", "groq"]);
@@ -73,3 +97,4 @@ export async function POST(request: Request) {
     );
   }
 }
+   ────────────────────────────────────────────────────────── */

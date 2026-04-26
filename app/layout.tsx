@@ -3,6 +3,7 @@ import { JetBrains_Mono, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { themeBootstrapScript } from "@/lib/theme";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -29,8 +30,16 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
+      suppressHydrationWarning
       className={`${jetbrainsMono.variable} ${interTight.variable}`}
     >
+      <head>
+        {/* Apply the saved theme synchronously, before React hydrates. Avoids
+            a flash of the wrong palette for users whose preference is light. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
+      </head>
       <body className="app" suppressHydrationWarning>
         <SiteHeader />
         <main className="main">{children}</main>

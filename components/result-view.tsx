@@ -10,10 +10,13 @@ import {
 } from "lucide-react";
 import { renderMarkdown } from "@/lib/render/markdown";
 import { renderTokensJsonString } from "@/lib/render/tokens-json";
-import { useExtractStore, useAiSettings } from "@/lib/store";
+import { useExtractStore } from "@/lib/store";
 import type { ColorToken, ExtractedTokens, TypographyRole } from "@/lib/types";
-import { AiProseDialog } from "@/components/ai-prose-dialog";
-import { AiProseSection } from "@/components/ai-prose-section";
+// AI prose layer is disabled for v0.1.x — re-enable when we ship the
+// productionised BYOK flow. Imports kept commented so it's a one-line revert.
+// import { useAiSettings } from "@/lib/store";
+// import { AiProseDialog } from "@/components/ai-prose-dialog";
+// import { AiProseSection } from "@/components/ai-prose-section";
 import { SwatchProvenanceDialog } from "@/components/swatch-provenance-dialog";
 
 type Tab = "preview" | "markdown" | "tokens";
@@ -21,7 +24,8 @@ type Tab = "preview" | "markdown" | "tokens";
 export function ResultView({ tokens }: { tokens: ExtractedTokens }) {
   const router = useRouter();
   const reset = useExtractStore((s) => s.reset);
-  const aiEnabled = useAiSettings((s) => s.enabled);
+  // AI prose layer disabled — see import block above.
+  // const aiEnabled = useAiSettings((s) => s.enabled);
 
   const [tab, setTab] = React.useState<Tab>("preview");
   const markdown = React.useMemo(() => renderMarkdown(tokens), [tokens]);
@@ -152,7 +156,7 @@ export function ResultView({ tokens }: { tokens: ExtractedTokens }) {
           <RotateCcw size={12} strokeWidth={1.5} />
           new url
         </button>
-        <AiProseDialog />
+        {/* <AiProseDialog /> — AI prose layer disabled */}
         <CopyBtn value={markdown} label="copy md" />
         <DownloadBtn
           filename={`${filenameBase}.DESIGN.md`}
@@ -162,7 +166,7 @@ export function ResultView({ tokens }: { tokens: ExtractedTokens }) {
         />
       </div>
 
-      {tab === "preview" && <PreviewTab tokens={tokens} aiEnabled={aiEnabled} />}
+      {tab === "preview" && <PreviewTab tokens={tokens} />}
       {tab === "markdown" && (
         <MarkdownViewer markdown={markdown} filenameBase={filenameBase} />
       )}
@@ -204,13 +208,7 @@ export function ResultView({ tokens }: { tokens: ExtractedTokens }) {
 
 /* ──────────────── Preview tab ──────────────── */
 
-function PreviewTab({
-  tokens,
-  aiEnabled,
-}: {
-  tokens: ExtractedTokens;
-  aiEnabled: boolean;
-}) {
+function PreviewTab({ tokens }: { tokens: ExtractedTokens }) {
   const allColors = [
     ...tokens.colors.primary,
     ...tokens.colors.neutral,
@@ -242,24 +240,26 @@ function PreviewTab({
         )}
       </section>
 
-      {aiEnabled && (
-        <section>
-          <div
-            className="row"
-            style={{ justifyContent: "space-between", marginBottom: 12 }}
-          >
-            <h3 className="t-h3">AI prose</h3>
-            <span className="t-caption" style={{ color: "var(--ai)" }}>
-              your key · streamed
-            </span>
-          </div>
-          <div style={{ display: "grid", gap: 12 }}>
-            <AiProseSection section="overview" tokens={tokens} />
-            <AiProseSection section="components" tokens={tokens} />
-            <AiProseSection section="guidelines" tokens={tokens} />
-          </div>
-        </section>
-      )}
+      {/*
+        AI prose layer disabled — re-enable when the productionised BYOK flow
+        ships. Original markup kept for easy reinstatement:
+
+        {aiEnabled && (
+          <section>
+            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+              <h3 className="t-h3">AI prose</h3>
+              <span className="t-caption" style={{ color: "var(--ai)" }}>
+                your key · streamed
+              </span>
+            </div>
+            <div style={{ display: "grid", gap: 12 }}>
+              <AiProseSection section="overview" tokens={tokens} />
+              <AiProseSection section="components" tokens={tokens} />
+              <AiProseSection section="guidelines" tokens={tokens} />
+            </div>
+          </section>
+        )}
+      */}
 
       {tokens.typography.roles.length > 0 && (
         <section>

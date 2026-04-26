@@ -67,14 +67,19 @@ pnpm typecheck     # tsc --noEmit
 pnpm build         # Production build
 ```
 
-## Optional AI prose
+<!--
+  ## Optional AI prose
 
-Click **AI prose: off** on any result page. Pick a provider, paste an API key,
-hit **Enable**. The key is stored in your browser's `localStorage` and sent
-through `/api/prose` directly to the upstream provider — never logged or
-persisted server-side. Each AI-generated paragraph is rendered with a
-`(AI-generated)` label and a dotted underline so a reader can tell which words
-came from a model.
+  Temporarily disabled in v0.1.x — re-enabling once the productionised BYOK
+  flow ships. The extractor itself remains fully deterministic.
+
+  Click **AI prose: off** on any result page. Pick a provider, paste an API key,
+  hit **Enable**. The key is stored in your browser's `localStorage` and sent
+  through `/api/prose` directly to the upstream provider — never logged or
+  persisted server-side. Each AI-generated paragraph is rendered with a
+  `(AI-generated)` label and a dotted underline so a reader can tell which words
+  came from a model.
+-->
 
 ## How extraction works
 
@@ -116,12 +121,12 @@ Vitest · happy-dom.
 
 ```
 app/                  Next.js routes (home, /compare, /discover, /whats-new, /api/*)
-components/           UI components (URL form, result tabs, compare flow, AI dialog)
+components/           UI components (URL form, result tabs, compare flow)
 components/ui/        Radix-based primitives
 lib/extract/          Deterministic extractors (one file per concern)
 lib/render/           Markdown / JSON / Preview renderers
 lib/compare.ts        Pure diff library for two ExtractedTokens objects
-lib/ai/               BYOK prose: providers + prompts
+lib/ai/               (disabled) BYOK prose providers + prompts
 lib/store.ts          Zustand stores for extract / compare / AI settings
 tests/                Vitest unit tests + CSS fixtures
 ```
