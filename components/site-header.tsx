@@ -7,6 +7,7 @@ import { GitHubLogo } from "@/components/icons";
 
 const NAV = [
   { href: "/", label: "extract", match: (p: string) => p === "/" },
+  { href: "/compare", label: "compare", match: (p: string) => p.startsWith("/compare") },
   { href: "/discover", label: "discover", match: (p: string) => p.startsWith("/discover") },
   { href: "/whats-new", label: "what's new", match: (p: string) => p === "/whats-new" },
 ];
