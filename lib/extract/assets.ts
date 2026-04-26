@@ -50,19 +50,26 @@ function readSiteName(
   $: FetchedSite["$"],
   hostname: string
 ): string {
-  const ogSiteName = $('meta[property="og:site_name"]').attr("content")?.trim();
-  if (ogSiteName) return ogSiteName;
+  const candidates = [
+    $('meta[property="og:site_name"]').attr("content")?.trim(),
+    $('meta[name="apple-mobile-web-app-title"]').attr("content")?.trim(),
+    $('meta[property="og:title"]').attr("content")?.trim(),
+    $("title").first().text()?.trim(),
+  ].filter((v): v is string => Boolean(v));
 
-  const appleTitle = $('meta[name="apple-mobile-web-app-title"]')
-    .attr("content")
-    ?.trim();
-  if (appleTitle) return appleTitle;
-
-  const title = $("title").first().text()?.trim();
-  if (title) {
-    const cleaned = title.split(/[–—|\-—]/)[0]?.trim();
-    if (cleaned) return cleaned;
+  for (const candidate of candidates) {
+    const trimmed = trimSiteName(candidate);
+    if (trimmed) return trimmed;
   }
 
   return hostname.replace(/^www\./, "").split(".")[0];
+}
+
+function trimSiteName(raw: string): string | null {
+  // Cut at the first separator: en-dash, em-dash, pipe, hyphen-with-spaces, colon
+  const parts = raw.split(/\s+[–—|:]\s+|\s+-\s+/);
+  const first = parts[0]?.trim();
+  if (!first) return null;
+  if (first.length > 60) return first.slice(0, 60).trim();
+  return first;
 }

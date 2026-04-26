@@ -19,6 +19,7 @@ const UTILITY_RULE_WEIGHT = 0.1;
 const PALETTE_TOKEN_WEIGHT = 0.02;
 const CUSTOM_PROPERTY_WEIGHT = 0.3;
 const REGULAR_RULE_WEIGHT = 1;
+const FRAMEWORK_RULE_WEIGHT = 0.01;
 const BRAND_INTENT_BOOST = 50;
 
 interface RawColor {
@@ -43,6 +44,12 @@ const HSL_COMPONENT_REGEX =
 const ROOT_LIKE_SELECTOR_REGEX =
   /(^|,)\s*(:root|html|body|\[data-theme[^\]]*\]|\.dark\b|\.light\b)\s*(?=,|$)/i;
 
+// WordPress / page-builder / e-commerce CSS that ships with the public site
+// but isn't part of the visible design language. Demote these to framework
+// noise so they don't dominate frequency counts.
+const FRAMEWORK_NOISE_SELECTOR_REGEX =
+  /\b(?:wp-admin|wp-block-|wp-element-|wp-image-|wp-embed|wp-caption|wp-paragraph|wp-heading|wp-buttons?|wp-list|wp-table|wp-quote|wp-pullquote|wp-code|wp-preformatted|wp-verse|wp-spacer|wp-separator|wp-group|wp-columns?|wp-cover|wp-media-text|wp-search|wp-archives|wp-categories|wp-page-list|wp-post|wp-comment|wp-tag-cloud|wp-shortcode|wp-html|wp-classic|wp-latest|wp-loginout|wp-meta|wp-rss|wp-social|wp-site|wp-template|wp-query|wp-pattern|wp-navigation|wp-mediaelement|editor-styles?-wrapper|edit-post|block-editor|gutenberg|tinymce|mce-|uagb-|spectra|elementor|wpforms|wc-block|woocommerce|woopay|gform|nf-|caldera|gravity|astra-|ast-|fl-builder|fl-bb|et_pb|divi-|brizy|breakdance|kadence|generatepress|ocean-?wp|neve-|hello-|twentytwenty|twentytwentyone|twentytwentytwo|twentytwentythree|twentytwentyfour)/i;
+
 const TAILWIND_PALETTE_NAMES =
   "slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose";
 
@@ -51,11 +58,26 @@ const UTILITY_CLASS_REGEX = new RegExp(
   "i"
 );
 
-const BRAND_INTENT_NAME_REGEX =
-  /^(?:--)?(?:colors?-)?(?:brand|primary|accent|cta|focus|interactive|action|theme|main)(?:-(?:default|base|500|600|main|primary))?$/i;
+const BRAND_KEYWORDS = [
+  "brand",
+  "primary",
+  "accent",
+  "cta",
+  "focus",
+  "interactive",
+  "action",
+  "theme",
+  "main",
+] as const;
 
-const SECONDARY_BRAND_INTENT_REGEX =
-  /^(?:--)?(?:colors?-)?(?:brand|primary|accent|cta|theme)-/i;
+const BRAND_SCALE_SUFFIX = new Set([
+  "default",
+  "base",
+  "main",
+  "500",
+  "600",
+  "primary",
+]);
 
 export function extractColors(parsed: ParsedCss): {
   primary: ColorToken[];
@@ -77,20 +99,20 @@ interface BrandHint {
 
 function collectBrandHints(props: CssCustomProperty[]): Map<Hex, BrandHint> {
   const map = new Map<Hex, BrandHint>();
+  const valueByName = new Map<string, string>();
+  for (const cp of props) valueByName.set(cp.name, cp.value);
+
   for (const cp of props) {
     if (!cp.value) continue;
-    const hex = parseAnyColor(cp.value);
-    if (!hex) continue;
 
-    const stripped = cp.name.replace(/^--/, "");
-    let weight = 0;
-    if (BRAND_INTENT_NAME_REGEX.test(stripped)) {
-      weight = BRAND_INTENT_BOOST * 4;
-    } else if (SECONDARY_BRAND_INTENT_REGEX.test(stripped)) {
-      weight = BRAND_INTENT_BOOST;
-    } else {
-      continue;
-    }
+    const weight = brandIntentScore(cp.name);
+    if (weight === 0) continue;
+
+    if (isFrameworkNoiseCustomPropertyName(cp.name)) continue;
+
+    const resolvedValue = resolveCustomPropertyVar(cp.value, valueByName);
+    const hex = parseAnyColor(resolvedValue);
+    if (!hex) continue;
 
     const existing = map.get(hex);
     if (!existing || weight > existing.weight) {
@@ -98,6 +120,23 @@ function collectBrandHints(props: CssCustomProperty[]): Map<Hex, BrandHint> {
     }
   }
   return map;
+}
+
+function resolveCustomPropertyVar(
+  value: string,
+  vars: Map<string, string>,
+  depth = 0
+): string {
+  if (depth > 8) return value;
+  return value.replace(
+    /var\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,\s*([^)]+))?\)/g,
+    (_, name: string, fallback: string | undefined) => {
+      const next = vars.get(name);
+      if (next) return resolveCustomPropertyVar(next, vars, depth + 1);
+      if (fallback) return fallback.trim();
+      return "";
+    }
+  );
 }
 
 function parseAnyColor(value: string): Hex | null {
@@ -129,8 +168,57 @@ function isRootLikeSelector(selector: string): boolean {
   return ROOT_LIKE_SELECTOR_REGEX.test(selector);
 }
 
+export function isFrameworkNoiseSelector(selector: string): boolean {
+  return FRAMEWORK_NOISE_SELECTOR_REGEX.test(selector);
+}
+
+function isFrameworkNoiseCustomPropertyName(name: string): boolean {
+  // Internal framework variables that never represent the visible brand.
+  // Note: theme-builder variables like --ast-global-color-N or --et-builder-*
+  // OFTEN house the actual brand colour, so we don't treat them as noise.
+  return /^--(?:wp-admin|wp-block|wp-element|gutenberg|editor-|mce-|tw-|tinymce-)/i.test(
+    name
+  );
+}
+
+function brandIntentScore(name: string): number {
+  const tokens = name
+    .replace(/^--/, "")
+    .toLowerCase()
+    .split(/[-_]/)
+    .filter(Boolean);
+  if (tokens.length === 0) return 0;
+
+  const last = tokens[tokens.length - 1];
+  const secondLast = tokens[tokens.length - 2];
+
+  if ((BRAND_KEYWORDS as readonly string[]).includes(last)) {
+    return BRAND_INTENT_BOOST * 4;
+  }
+
+  if (
+    secondLast &&
+    (BRAND_KEYWORDS as readonly string[]).includes(secondLast) &&
+    BRAND_SCALE_SUFFIX.has(last)
+  ) {
+    return BRAND_INTENT_BOOST * 4;
+  }
+
+  if (tokens.some((t) => (BRAND_KEYWORDS as readonly string[]).includes(t))) {
+    return BRAND_INTENT_BOOST;
+  }
+
+  return 0;
+}
+
 function declarationWeight(selector: string, property: string): number {
   const isCustomProp = property.startsWith("--");
+  if (isCustomProp && isFrameworkNoiseCustomPropertyName(property)) {
+    return PALETTE_TOKEN_WEIGHT;
+  }
+  if (isFrameworkNoiseSelector(selector)) {
+    return FRAMEWORK_RULE_WEIGHT;
+  }
   if (isCustomProp && isRootLikeSelector(selector)) {
     return PALETTE_TOKEN_WEIGHT;
   }
@@ -263,16 +351,26 @@ function classify(cluster: ColorCluster): ClassifiedColor {
 
   const hueSemantic = matchSemantic(oklch);
   const contextSemantic = matchSemanticBySelector(selectors);
-  const semantic =
+  const rawSemantic =
     contextSemantic ??
     (hueSemantic && hasSemanticContext(selectors) ? hueSemantic : undefined);
+  // Grayscale/near-grayscale colours are never genuinely "error / warning /
+  // success / info" tokens — even if they appear in a selector containing one
+  // of those keywords (.info-banner with text-color: black is a common false
+  // positive). Require visible chroma to accept a semantic classification.
+  const semantic = rawSemantic && oklch.c >= 0.08 ? rawSemantic : undefined;
   const usage = inferUsage(selectors);
 
   let role: "primary" | "neutral" | "semantic";
   if (semantic) {
     role = "semantic";
-  } else if (brandIntent > 0) {
+  } else if (brandIntent > 0 && !isLowChroma) {
     role = "primary";
+  } else if (brandIntent > 0 && isLowChroma) {
+    // Brand-intent custom property pointing at a near-grayscale colour
+    // (e.g. Astra --ast-global-color-primary → #181818) — surface it as the
+    // primary text colour but in the neutral palette where it visually belongs.
+    role = "neutral";
   } else if (isLowChroma || isVeryLightOrDark) {
     role = "neutral";
   } else {

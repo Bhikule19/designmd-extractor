@@ -217,8 +217,9 @@ function readTypographyDeclarations(
     : fallbackFamily;
   const sizeRaw = rule.declarations["font-size"];
   if (!sizeRaw) return null;
-  const size = parseLengthToPx(sizeRaw);
-  if (size === null) return null;
+  const sizeRawPx = parseLengthToPx(sizeRaw);
+  if (sizeRawPx === null) return null;
+  const size = Math.round(sizeRawPx * 10) / 10;
   const weight = parseWeight(rule.declarations["font-weight"]);
   const lineHeight = parseLineHeight(rule.declarations["line-height"], size);
   const letterSpacing = parseLengthToPx(
@@ -280,10 +281,28 @@ function parseWeight(input?: string): number {
 function parseLineHeight(input: string | undefined, fontSize: number): number {
   if (!input) return 1.5;
   const trimmed = input.trim();
-  if (/^[0-9.]+$/.test(trimmed)) {
+
+  // Unitless number → already a multiplier
+  if (/^-?\d*\.?\d+$/.test(trimmed)) {
     const num = parseFloat(trimmed);
     return Number.isFinite(num) ? num : 1.5;
   }
+
+  // em / rem on line-height is a multiplier of the element's own font-size
+  const emMatch = trimmed.match(/^(-?\d*\.?\d+)(em|rem)$/i);
+  if (emMatch) {
+    const num = parseFloat(emMatch[1]);
+    return Number.isFinite(num) ? Math.round(num * 100) / 100 : 1.5;
+  }
+
+  // Percentage
+  const pctMatch = trimmed.match(/^(-?\d*\.?\d+)%$/);
+  if (pctMatch) {
+    const num = parseFloat(pctMatch[1]);
+    return Number.isFinite(num) ? Math.round(num) / 100 : 1.5;
+  }
+
+  // Absolute lengths
   const px = parseLengthToPx(trimmed);
   if (px && fontSize > 0) {
     return Math.round((px / fontSize) * 100) / 100;
