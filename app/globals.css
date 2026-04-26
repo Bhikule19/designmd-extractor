@@ -1012,4 +1012,71 @@ body {
   background: var(--surface);
 }
 
-
+/* —— Compare diff —— */
+.diff-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  background: var(--bg);
+}
+.diff-row {
+  display: grid;
+  grid-template-columns: 18px auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px dashed var(--border-subtle);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.diff-row:last-child {
+  border-bottom: 0;
+}
+.diff-row--shared {
+  grid-template-columns: 18px auto auto 1fr;
+}
+.diff-marker {
+  font-weight: 700;
+  font-size: 12px;
+  font-family: var(--mono);
+  text-align: center;
+  line-height: 1;
+}
+.diff-marker.tone-a {
+  color: var(--ai);
+}
+.diff-marker.tone-b {
+  color: var(--signal);
+}
+.diff-marker.tone-shared {
+  color: var(--fg-muted);
+}
+.diff-row .swatch-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border-subtle);
+}
+.diff-name {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.diff-name .swatch-name {
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.diff-name .swatch-hex {
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-feature-settings: "tnum" on;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
