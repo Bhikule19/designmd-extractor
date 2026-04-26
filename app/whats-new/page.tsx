@@ -13,6 +13,23 @@ const ENTRIES: Entry[] = [
   {
     date: "2026-04-26",
     tag: "shipped",
+    title: "v0.3.0 — public KPI counters and /stats",
+    body: (
+      <>
+        Six public counters surfaced on a new <code>/stats</code> page: how
+        many <code>DESIGN.md</code> files have been generated, how many{" "}
+        <code>.md</code> downloads, how many compare runs, how many discover
+        visits, top extracted hosts, top discovered brands, and top compare
+        presets. Counters live in Upstash / Vercel KV in production and an
+        in-memory store locally; no cookies, no IP logging, no PII — just the
+        aggregates. The <code>/stats</code> page renders live with mono ASCII
+        bar charts, on-brand for the deterministic-first stance.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
     title: "v0.2.0 — light/dark toggle, header & footer polish",
     body: (
       <>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { useCompareStore } from "@/lib/store";
+import { fireTrack } from "@/components/track-page-view";
 
 const PRESETS: Array<[string, string]> = [
   ["stripe.com", "linear.app"],
@@ -75,6 +76,7 @@ export function CompareForm() {
   }
 
   function tryPreset(a: string, b: string) {
+    fireTrack({ event: "compare_preset", preset: `${a} vs ${b}` });
     setUrlA(`https://${a}`);
     setUrlB(`https://${b}`);
     setTimeout(() => run(`https://${a}`, `https://${b}`), 100);

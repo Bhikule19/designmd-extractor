@@ -18,6 +18,7 @@ import type { ColorToken, ExtractedTokens, TypographyRole } from "@/lib/types";
 // import { AiProseDialog } from "@/components/ai-prose-dialog";
 // import { AiProseSection } from "@/components/ai-prose-section";
 import { SwatchProvenanceDialog } from "@/components/swatch-provenance-dialog";
+import { fireTrack } from "@/components/track-page-view";
 
 type Tab = "preview" | "markdown" | "tokens";
 
@@ -793,6 +794,10 @@ function DownloadBtn({
   variant?: "signal";
 }) {
   function go() {
+    // Only count *.md downloads — JSON exports are a separate KPI we can add later.
+    if (mimeType === "text/markdown") {
+      void fireTrack({ event: "download_md" });
+    }
     const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
     const u = URL.createObjectURL(blob);
     const a = document.createElement("a");
