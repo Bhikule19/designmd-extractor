@@ -26,6 +26,9 @@
 .vscode/
 .idea/
 
+# private working notes — stay local, never committed
+FEATURE_ROADMAP.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*
