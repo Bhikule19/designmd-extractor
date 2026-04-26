@@ -81,8 +81,6 @@ export function UrlForm() {
           <span className="t-caption signal-text">// extractor v0.1.0</span>
           <span className="t-caption faint">·</span>
           <span className="t-caption">deterministic</span>
-          <span className="t-caption faint">·</span>
-          <span className="t-caption">BYOK ai optional</span>
         </div>
 
         <h1 className="t-display">
@@ -164,7 +162,7 @@ export function UrlForm() {
           }}
         >
           <span className="t-caption">
-            [ extractor v0.1.0 · deterministic · BYOK ai optional ]
+            [ extractor v0.1.0 · deterministic ]
           </span>
           <span className="t-caption">
             press <span className="kbd">↵</span> to run

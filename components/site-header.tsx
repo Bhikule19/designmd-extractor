@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useExtractStore } from "@/lib/store";
-import { GitHubLogo } from "@/components/icons";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV = [
   { href: "/", label: "extract", match: (p: string) => p === "/" },
   { href: "/compare", label: "compare", match: (p: string) => p.startsWith("/compare") },
   { href: "/discover", label: "discover", match: (p: string) => p.startsWith("/discover") },
-  { href: "/whats-new", label: "what's new", match: (p: string) => p === "/whats-new" },
 ];
 
 export function SiteHeader() {
@@ -45,15 +44,7 @@ export function SiteHeader() {
               margin: "0 4px",
             }}
           />
-          <a
-            href="https://github.com/Bhikule19/designmd-extractor"
-            target="_blank"
-            rel="noreferrer noopener"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
-            <GitHubLogo style={{ width: 13, height: 13 }} />
-            github
-          </a>
+          <ThemeToggle />
         </nav>
       </div>
     </header>
