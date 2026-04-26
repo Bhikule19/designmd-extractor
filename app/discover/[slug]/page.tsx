@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { ResultView } from "@/components/result-view";
-import { Button } from "@/components/ui/button";
 import { findDiscoverEntry } from "@/lib/discover";
 import { extract } from "@/lib/extract";
 
@@ -16,7 +16,7 @@ export async function generateMetadata({
   const entry = findDiscoverEntry(slug);
   if (!entry) return { title: "Not found" };
   return {
-    title: `${entry.name} · DESIGN.md Extractor`,
+    title: `${entry.name} · design.md/extractor`,
     description: `Design system extracted from ${entry.url}`,
   };
 }
@@ -34,31 +34,73 @@ export default async function DiscoverDetailPage({
 
   if (!result.ok) {
     return (
-      <section className="w-full max-w-3xl mx-auto px-6 py-16 space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Extraction failed for {entry.name}
-        </h1>
-        <p className="text-sm text-muted-fg">{result.error.message}</p>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/discover">← Back to Discover</Link>
-        </Button>
-      </section>
+      <div style={{ paddingTop: 56, paddingBottom: 80, maxWidth: 760 }}>
+        <Link
+          href="/discover"
+          style={{
+            color: "var(--fg-muted)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            marginBottom: 24,
+            fontSize: 13,
+          }}
+        >
+          <ArrowLeft size={12} strokeWidth={1.5} /> all examples
+        </Link>
+        <h1 className="t-h1">Extraction failed for {entry.name}</h1>
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            border: "1px solid rgba(217, 106, 106, 0.4)",
+            borderRadius: "var(--r-md)",
+            background: "rgba(217, 106, 106, 0.06)",
+          }}
+        >
+          <p
+            className="t-caption"
+            style={{ color: "var(--err)", marginBottom: 6 }}
+          >
+            {result.error.code.replace(/_/g, " ")}
+          </p>
+          <p className="t-body-sm" style={{ color: "var(--fg)", margin: 0 }}>
+            {result.error.message}
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="border-b">
-        <div className="w-full max-w-6xl mx-auto px-6 py-3 flex items-center justify-between text-xs">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/discover">← All examples</Link>
-          </Button>
-          <span className="text-muted-fg font-mono">
-            cached · revalidates daily
-          </span>
-        </div>
+    <div style={{ paddingTop: 0 }}>
+      <div
+        style={{
+          padding: "12px 0",
+          borderBottom: "1px dashed var(--border)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <Link
+          href="/discover"
+          style={{
+            color: "var(--fg-muted)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 13,
+          }}
+        >
+          <ArrowLeft size={12} strokeWidth={1.5} /> all examples
+        </Link>
+        <span className="t-caption">cached · revalidates daily</span>
       </div>
       <ResultView tokens={result.tokens} />
-    </>
+    </div>
   );
 }

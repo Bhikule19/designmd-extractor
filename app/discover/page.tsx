@@ -3,47 +3,106 @@ import { ArrowRight } from "lucide-react";
 import { DISCOVER_ENTRIES } from "@/lib/discover";
 
 export const metadata = {
-  title: "Discover · DESIGN.md Extractor",
-  description: "Explore design systems extracted from popular websites.",
+  title: "Discover · design.md/extractor",
+  description:
+    "Real systems, taken apart. Curated extractions of well-known design systems.",
 };
 
 export default function DiscoverPage() {
   return (
-    <section className="w-full max-w-6xl mx-auto px-6 py-12 space-y-8">
-      <header className="space-y-3 max-w-2xl">
-        <p className="text-xs uppercase tracking-wider text-muted-fg font-mono">
-          Discover
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Try the extractor on these sites
+    <div style={{ paddingTop: 56, paddingBottom: 40 }}>
+      <div style={{ display: "grid", gap: 12, marginBottom: 36, maxWidth: 720 }}>
+        <div className="row" style={{ gap: 10 }}>
+          <span className="t-caption signal-text">// discover</span>
+          <span className="t-caption faint">·</span>
+          <span className="t-caption">
+            {DISCOVER_ENTRIES.length} curated extractions
+          </span>
+        </div>
+        <h1 className="t-h1" style={{ margin: 0 }}>
+          Real systems, taken apart.
         </h1>
-        <p className="text-sm text-muted-fg">
-          Each card runs a fresh deterministic extraction against the live site.
-          Results are cached at the edge for a day.
+        <p
+          style={{
+            margin: 0,
+            fontFamily: "var(--mono)",
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: "var(--fg-muted)",
+          }}
+        >
+          Each card opens a fresh deterministic extraction of the source — no
+          guessing, no icon palette. Click to read the full DESIGN.md.
         </p>
-      </header>
+      </div>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {DISCOVER_ENTRIES.map((entry) => (
-          <li key={entry.slug}>
-            <Link
-              href={`/discover/${entry.slug}`}
-              className="block rounded-lg border bg-card p-5 transition-colors hover:bg-muted/40 group"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <h2 className="font-semibold tracking-tight">{entry.name}</h2>
-                  <p className="text-xs text-muted-fg">{entry.tagline}</p>
-                </div>
-                <ArrowRight className="size-4 text-muted-fg group-hover:translate-x-0.5 transition-transform" />
+      <div
+        className="row"
+        style={{
+          marginBottom: 0,
+          gap: 0,
+          padding: "12px 0",
+          borderTop: "1px dashed var(--border)",
+          borderBottom: "1px dashed var(--border)",
+        }}
+      >
+        <span className="t-caption" style={{ flex: 1 }}>
+          name
+        </span>
+        <span className="t-caption" style={{ width: 200 }}>
+          accent · secondary
+        </span>
+        <span className="t-caption" style={{ width: 120, textAlign: "right" }}>
+          host
+        </span>
+      </div>
+
+      <div className="discover-grid" style={{ marginTop: -1 }}>
+        {DISCOVER_ENTRIES.map((s) => (
+          <Link key={s.slug} href={`/discover/${s.slug}`} className="dcard">
+            <div className="dcard-head">
+              <div>
+                <div className="dcard-name">{s.name}</div>
+                <div className="dcard-host">{s.hostname}</div>
               </div>
-              <p className="mt-3 text-xs font-mono text-muted-fg truncate">
-                {entry.url.replace(/^https?:\/\//, "")}
-              </p>
-            </Link>
-          </li>
+              <ArrowRight size={14} strokeWidth={1.5} />
+            </div>
+            <div
+              className="dcard-swatch"
+              style={{
+                background: `linear-gradient(90deg, ${s.hintAccent} 0%, ${s.hintAccent} 70%, ${s.hintSecondary} 70%, ${s.hintSecondary} 100%)`,
+              }}
+            />
+            <div className="dcard-tag">{s.tagline}</div>
+            <div className="dcard-meta">
+              <span className="row" style={{ gap: 6 }}>
+                <span
+                  aria-hidden
+                  style={{
+                    display: "inline-block",
+                    width: 8,
+                    height: 8,
+                    background: s.hintAccent,
+                  }}
+                />
+                <span>{s.hintAccent.toUpperCase()}</span>
+              </span>
+              <span>extract →</span>
+            </div>
+          </Link>
         ))}
-      </ul>
-    </section>
+      </div>
+
+      <p
+        style={{
+          marginTop: 28,
+          fontSize: 12,
+          color: "var(--fg-subtle)",
+          fontFamily: "var(--mono)",
+        }}
+      >
+        // colours sampled from real CSS · cached for 24h per slug
+      </p>
+    </div>
   );
 }
