@@ -78,7 +78,7 @@ export function UrlForm() {
     <div style={{ display: "grid", gap: 56 }}>
       <div style={{ display: "grid", gap: 28, maxWidth: 760 }}>
         <div className="row" style={{ gap: 10 }}>
-          <span className="t-caption signal-text">// extractor v0.3.0</span>
+          <span className="t-caption signal-text">// extractor v0.4.0</span>
           <span className="t-caption faint">·</span>
           <span className="t-caption">deterministic</span>
         </div>
@@ -162,7 +162,7 @@ export function UrlForm() {
           }}
         >
           <span className="t-caption">
-            [ extractor v0.3.0 · deterministic ]
+            [ extractor v0.4.0 · deterministic ]
           </span>
           <span className="t-caption">
             press <span className="kbd">↵</span> to run
