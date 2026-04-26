@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { extract } from "@/lib/extract";
+import { trackExtract } from "@/lib/track";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,9 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return NextResponse.json(result, { status: 422 });
   }
+
+  // Fire-and-forget KPI counter — never block the response on the KV write.
+  void trackExtract(result.tokens.meta.hostname).catch(() => {});
 
   return NextResponse.json(result);
 }

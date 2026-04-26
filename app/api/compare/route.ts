@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { extract } from "@/lib/extract";
 import { compareTokens } from "@/lib/compare";
+import { trackCompare } from "@/lib/track";
 import type { ExtractionResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -33,6 +34,9 @@ export async function POST(request: Request) {
   if (!b.ok) return failed(b, "b", body.urlB);
 
   const comparison = compareTokens(a.tokens, b.tokens);
+
+  // Fire-and-forget — preset attribution arrives separately via /api/track.
+  void trackCompare().catch(() => {});
 
   return NextResponse.json({
     ok: true,
