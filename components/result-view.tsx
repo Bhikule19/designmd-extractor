@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
@@ -9,15 +12,31 @@ import { AiProseSection } from "@/components/ai-prose-section";
 import { TokenPreview } from "@/lib/render/preview";
 import { renderMarkdown } from "@/lib/render/markdown";
 import { renderTokensJsonString } from "@/lib/render/tokens-json";
+import { useExtractStore } from "@/lib/store";
 import type { ExtractedTokens } from "@/lib/types";
 
 export function ResultView({ tokens }: { tokens: ExtractedTokens }) {
+  const router = useRouter();
+  const reset = useExtractStore((s) => s.reset);
+
+  function startOver() {
+    reset();
+    router.push("/");
+  }
+
   const markdown = React.useMemo(() => renderMarkdown(tokens), [tokens]);
   const json = React.useMemo(() => renderTokensJsonString(tokens), [tokens]);
   const filenameBase = tokens.meta.hostname.replace(/\./g, "-");
 
   return (
     <section className="w-full max-w-6xl mx-auto px-6 py-8 space-y-6">
+      <div className="flex items-center justify-between text-xs">
+        <Button variant="ghost" size="sm" onClick={startOver}>
+          <ArrowLeft className="size-3.5" />
+          Extract another URL
+        </Button>
+      </div>
+
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 border-b pb-4">
         <div className="space-y-1">
           <p className="text-xs uppercase tracking-wider text-muted-fg font-mono">
@@ -44,6 +63,10 @@ export function ResultView({ tokens }: { tokens: ExtractedTokens }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={startOver}>
+            <RotateCcw className="size-3.5" />
+            New URL
+          </Button>
           <AiProseDialog />
           <CopyButton value={markdown} label="Copy Markdown" />
           <DownloadButton
