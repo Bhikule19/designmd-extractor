@@ -1,4 +1,4 @@
-import type { ExtractedTokens, ExtractionResult } from "@/lib/types";
+import type { ExtractedTokens, ExtractionResult, Hex } from "@/lib/types";
 import { fetchSite } from "@/lib/extract/fetch";
 import { parseCss } from "@/lib/extract/css-walker";
 import { extractColors } from "@/lib/extract/colors";
@@ -8,6 +8,8 @@ import { extractRadius } from "@/lib/extract/radius";
 import { extractShadows } from "@/lib/extract/shadows";
 import { extractComponents } from "@/lib/extract/components";
 import { extractAssets, extractMeta } from "@/lib/extract/assets";
+import { collectUsedClasses } from "@/lib/extract/dom-classes";
+import { collectHeadBrandSignals } from "@/lib/extract/head-signals";
 
 export async function extract(rawUrl: string): Promise<ExtractionResult> {
   let site;
@@ -45,7 +47,24 @@ export async function extract(rawUrl: string): Promise<ExtractionResult> {
   const warnings: string[] = [];
   const parsed = parseCss(site.css);
 
-  const colors = extractColors(parsed);
+  const domClasses = collectUsedClasses(site);
+  const headSignals = await collectHeadBrandSignals(site);
+
+  const externalBrandHints = new Map<
+    Hex,
+    { weight: number; name: string }
+  >();
+  for (const sig of headSignals) {
+    const existing = externalBrandHints.get(sig.hex);
+    if (!existing || sig.weight > existing.weight) {
+      externalBrandHints.set(sig.hex, {
+        weight: sig.weight,
+        name: sig.source,
+      });
+    }
+  }
+
+  const colors = extractColors(parsed, { domClasses, externalBrandHints });
   const typography = extractTypography(parsed);
   const spacing = extractSpacing(parsed);
   const radius = extractRadius(parsed);
