@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function SiteFooter() {
   return (
     <footer className="footer">
@@ -8,25 +6,20 @@ export function SiteFooter() {
           <span className="logo-dot" aria-hidden />
           <span>
             design.md<span className="faint">/</span>extractor{" "}
-            <span className="faint">·</span> v0.1.0
+            <span className="faint">·</span> v0.2.0
           </span>
         </div>
         <div className="footer-meta">
-          <span>deterministic</span>
-          <span className="faint">·</span>
-          <span>BYOK ai optional</span>
-          <span className="faint">·</span>
-          <span>MIT</span>
-          <span className="faint">·</span>
-          <Link href="/discover">discover</Link>
-          <Link href="/whats-new">changelog</Link>
-          <a
-            href="https://github.com/Bhikule19/designmd-extractor"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            github
-          </a>
+          <span>
+            built by{" "}
+            <a
+              href="https://github.com/Bhikule19"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              @Bhikule19
+            </a>
+          </span>
         </div>
       </div>
     </footer>
