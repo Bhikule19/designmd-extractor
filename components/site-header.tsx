@@ -1,41 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { GitHubLogo } from "@/components/icons";
+import { usePathname } from "next/navigation";
 import { useExtractStore } from "@/lib/store";
+import { GitHubLogo } from "@/components/icons";
+
+const NAV = [
+  { href: "/", label: "extract", match: (p: string) => p === "/" },
+  { href: "/discover", label: "discover", match: (p: string) => p.startsWith("/discover") },
+  { href: "/whats-new", label: "what's new", match: (p: string) => p === "/whats-new" },
+];
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const reset = useExtractStore((s) => s.reset);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-bg/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
-        <Link
-          href="/"
-          onClick={() => reset()}
-          className="flex items-center gap-2 font-mono text-sm tracking-tight"
-        >
-          <span aria-hidden className="inline-block size-2 rounded-full bg-fg" />
-          <span className="font-semibold">design.md</span>
-          <span className="text-muted-fg hidden sm:inline">extractor</span>
+    <header className="header">
+      <div className="header-inner">
+        <Link href="/" onClick={() => reset()} className="logo">
+          <span className="logo-dot" aria-hidden />
+          <span className="logo-mark">
+            design.md<span className="slash">/</span>extractor
+          </span>
         </Link>
-        <nav className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/discover">Discover</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/whats-new">What&apos;s new</Link>
-          </Button>
-          <Button variant="ghost" size="icon" asChild aria-label="GitHub">
-            <a
-              href="https://github.com/Bhikule19/designmd-extractor"
-              target="_blank"
-              rel="noreferrer noopener"
+        <nav className="nav">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => item.href === "/" && reset()}
+              className={item.match(pathname) ? "is-active" : undefined}
             >
-              <GitHubLogo className="size-4" />
-            </a>
-          </Button>
+              {item.label}
+            </Link>
+          ))}
+          <span
+            aria-hidden
+            style={{
+              width: 1,
+              height: 18,
+              background: "var(--border-subtle)",
+              margin: "0 4px",
+            }}
+          />
+          <a
+            href="https://github.com/Bhikule19/designmd-extractor"
+            target="_blank"
+            rel="noreferrer noopener"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <GitHubLogo style={{ width: 13, height: 13 }} />
+            github
+          </a>
         </nav>
       </div>
     </header>

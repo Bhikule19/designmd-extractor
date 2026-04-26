@@ -1,16 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAiSettings } from "@/lib/store";
 import type { ExtractedTokens } from "@/lib/types";
 import type { ProseSection } from "@/lib/ai/prompts";
 
 const TITLES: Record<ProseSection, string> = {
-  overview: "Overview",
-  components: "Component prose",
-  guidelines: "Voice & application notes",
+  overview: "overview",
+  components: "components",
+  guidelines: "voice & application notes",
 };
 
 export function AiProseSection({
@@ -27,9 +25,7 @@ export function AiProseSection({
 
   async function generate() {
     if (!settings.enabled || !settings.apiKey) {
-      setError(
-        "Configure your API key in the AI prose dialog above to enable this."
-      );
+      setError("Configure your API key first.");
       return;
     }
     setLoading(true);
@@ -70,42 +66,55 @@ export function AiProseSection({
   }
 
   return (
-    <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-3.5 text-muted-fg" />
-          <span className="text-xs uppercase tracking-wider text-muted-fg font-mono">
-            {TITLES[section]} (AI-generated)
+    <div
+      style={{
+        padding: 16,
+        border: "1px dashed rgba(184, 164, 234, 0.30)",
+        borderRadius: "var(--r-md)",
+        background: "rgba(184, 164, 234, 0.04)",
+        display: "grid",
+        gap: 10,
+      }}
+    >
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <div className="row" style={{ gap: 8 }}>
+          <span className="pill is-ai">AI-GENERATED</span>
+          <span className="t-caption" style={{ color: "var(--ai)" }}>
+            {TITLES[section]} · {settings.provider} · {settings.model}
           </span>
         </div>
-        <Button size="sm" variant="outline" onClick={generate} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="size-3.5 animate-spin" />
-              Streaming…
-            </>
-          ) : text ? (
-            "Regenerate"
-          ) : (
-            "Generate"
-          )}
-        </Button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={generate}
+          disabled={loading}
+        >
+          {loading ? "streaming…" : text ? "regenerate" : "generate"}
+        </button>
       </div>
 
-      {!settings.enabled && !text && (
-        <p className="text-xs text-muted-fg">
-          AI prose is disabled. Click the AI prose button in the result toolbar to add an API key.
+      {error && (
+        <p
+          className="t-body-sm"
+          style={{ color: "var(--err)", margin: 0, wordBreak: "break-all" }}
+        >
+          {error}
         </p>
       )}
 
-      {error && (
-        <p className="text-xs text-red-600 break-all">{error}</p>
-      )}
-
       {text && (
-        <div className="prose-sm whitespace-pre-wrap text-sm leading-relaxed">
+        <p
+          className="ai-mark"
+          style={{
+            margin: 0,
+            fontSize: 13,
+            lineHeight: 1.65,
+            color: "var(--fg)",
+            whiteSpace: "pre-wrap",
+          }}
+        >
           {text}
-        </div>
+        </p>
       )}
     </div>
   );
