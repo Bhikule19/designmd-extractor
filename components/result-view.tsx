@@ -485,7 +485,23 @@ function Swatch({ token }: { token: ColorToken }) {
           </span>
         </div>
         <span className="swatch-hex">{token.hex.toUpperCase()}</span>
-        <span className="swatch-use">{token.usage}</span>
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <span className="swatch-use">{token.usage}</span>
+          <span
+            className="t-caption"
+            title={`${token.occurrences} CSS rule${
+              token.occurrences === 1 ? "" : "s"
+            } cite this colour`}
+            style={{
+              fontSize: 10,
+              color: "var(--fg-faint)",
+              letterSpacing: "0.04em",
+              fontFeatureSettings: "'tnum' on",
+            }}
+          >
+            {token.occurrences} CITES
+          </span>
+        </div>
       </div>
     </div>
   );

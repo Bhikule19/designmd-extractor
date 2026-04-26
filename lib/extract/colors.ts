@@ -10,6 +10,7 @@ import {
   type ParsedCss,
   type CssCustomProperty,
 } from "@/lib/extract/css-walker";
+import { selectorClasses } from "@/lib/extract/dom-classes";
 
 const toOklch = converter("oklch");
 const diff = differenceCiede2000();
@@ -21,6 +22,15 @@ const CUSTOM_PROPERTY_WEIGHT = 0.3;
 const REGULAR_RULE_WEIGHT = 1;
 const FRAMEWORK_RULE_WEIGHT = 0.01;
 const BRAND_INTENT_BOOST = 50;
+
+// Class-allowlist multipliers — applied on top of the base rule weight when
+// we know which classes appear in the served HTML. The gradient is steep on
+// purpose: a class that never appears in `class="..."` is almost certainly
+// a framework leftover or unused theme variant, while a class actually
+// rendered on the page is direct evidence the rule is part of the visible
+// design language.
+const CLASS_USED_MULTIPLIER = 4.0;
+const CLASS_UNUSED_MULTIPLIER = 0.01;
 
 interface RawColor {
   hex: Hex;
@@ -79,13 +89,31 @@ const BRAND_SCALE_SUFFIX = new Set([
   "primary",
 ]);
 
-export function extractColors(parsed: ParsedCss): {
+export interface ExtractColorsOptions {
+  /** Class names actually present in `class="..."` attributes on the page. */
+  domClasses?: Set<string>;
+  /** Hex codes the site's `<head>` declared as brand intent (theme-color, manifest, og). */
+  externalBrandHints?: Map<Hex, { weight: number; name: string }>;
+}
+
+export function extractColors(
+  parsed: ParsedCss,
+  options: ExtractColorsOptions = {}
+): {
   primary: ColorToken[];
   neutral: ColorToken[];
   semantic: ColorToken[];
 } {
   const brandHints = collectBrandHints(parsed.customProperties);
-  const raw = collectRawColors(parsed, brandHints);
+  if (options.externalBrandHints) {
+    for (const [hex, hint] of options.externalBrandHints) {
+      const existing = brandHints.get(hex);
+      if (!existing || hint.weight > existing.weight) {
+        brandHints.set(hex, { hex, weight: hint.weight, name: hint.name });
+      }
+    }
+  }
+  const raw = collectRawColors(parsed, brandHints, options.domClasses);
   const clusters = clusterColors(raw);
   const enriched = clusters.map((cluster) => classify(cluster));
   return groupByRole(enriched);
@@ -211,7 +239,23 @@ function brandIntentScore(name: string): number {
   return 0;
 }
 
-function declarationWeight(selector: string, property: string): number {
+function classMembershipMultiplier(
+  selector: string,
+  domClasses: Set<string> | undefined
+): number {
+  if (!domClasses || domClasses.size === 0) return 1;
+  const classes = selectorClasses(selector);
+  if (classes.length === 0) return 1; // element-only selector — no DOM signal
+  return classes.some((c) => domClasses.has(c))
+    ? CLASS_USED_MULTIPLIER
+    : CLASS_UNUSED_MULTIPLIER;
+}
+
+function declarationWeight(
+  selector: string,
+  property: string,
+  domClasses: Set<string> | undefined
+): number {
   const isCustomProp = property.startsWith("--");
   if (isCustomProp && isFrameworkNoiseCustomPropertyName(property)) {
     return PALETTE_TOKEN_WEIGHT;
@@ -225,15 +269,17 @@ function declarationWeight(selector: string, property: string): number {
   if (isCustomProp) {
     return CUSTOM_PROPERTY_WEIGHT;
   }
+  const classMul = classMembershipMultiplier(selector, domClasses);
   if (isUtilityClassSelector(selector)) {
-    return UTILITY_RULE_WEIGHT;
+    return UTILITY_RULE_WEIGHT * classMul;
   }
-  return REGULAR_RULE_WEIGHT;
+  return REGULAR_RULE_WEIGHT * classMul;
 }
 
 function collectRawColors(
   parsed: ParsedCss,
-  brandHints: Map<Hex, BrandHint>
+  brandHints: Map<Hex, BrandHint>,
+  domClasses: Set<string> | undefined
 ): RawColor[] {
   const map = new Map<Hex, RawColor>();
 
@@ -262,7 +308,7 @@ function collectRawColors(
     for (const [property, value] of Object.entries(rule.declarations)) {
       if (!isColorProperty(property) && !property.startsWith("--")) continue;
 
-      const weight = declarationWeight(rule.selector, property);
+      const weight = declarationWeight(rule.selector, property, domClasses);
       const isCustomProp = property.startsWith("--");
 
       // For custom properties, also try the HSL-component shorthand.

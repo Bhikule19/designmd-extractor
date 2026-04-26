@@ -134,6 +134,19 @@ function extractFontStacks(
     .map((s) => s.stack);
 }
 
+// Numeric / unit-looking tokens that can leak into a font-family value via
+// CSS-in-JS bugs or shorthand mis-splits (e.g. `font-family: 1.2` or
+// `--font-default: 0.875rem` resolved through a var chain). A real CSS
+// font family name never starts with a digit and never carries a length unit.
+const NUMERIC_VALUE_REGEX = /^-?\d+(?:\.\d+)?(em|rem|px|pt|%|vw|vh|ex|ch)?$/i;
+
+function looksLikeFontName(name: string): boolean {
+  if (!name) return false;
+  if (NUMERIC_VALUE_REGEX.test(name)) return false;
+  if (/^\d/.test(name)) return false;
+  return true;
+}
+
 function parseFontFamily(value: string): FontStack | null {
   const cleaned = value
     .split(",")
@@ -146,7 +159,11 @@ function parseFontFamily(value: string): FontStack | null {
         .trim()
     )
     .filter(
-      (s) => s.length > 0 && !s.startsWith("<") && !s.startsWith("var(")
+      (s) =>
+        s.length > 0 &&
+        !s.startsWith("<") &&
+        !s.startsWith("var(") &&
+        looksLikeFontName(s)
     );
   if (cleaned.length === 0) return null;
   const [primary, ...fallbacks] = cleaned;
