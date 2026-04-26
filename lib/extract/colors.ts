@@ -4,7 +4,12 @@ import {
   formatHex,
   parse as parseColor,
 } from "culori";
-import type { ColorToken, Hex, SemanticKind } from "@/lib/types";
+import type {
+  ColorToken,
+  Hex,
+  ProvenanceEntry,
+  SemanticKind,
+} from "@/lib/types";
 import {
   isColorProperty,
   type ParsedCss,
@@ -32,12 +37,19 @@ const BRAND_INTENT_BOOST = 50;
 const CLASS_USED_MULTIPLIER = 4.0;
 const CLASS_UNUSED_MULTIPLIER = 0.01;
 
+interface RawProvenance {
+  selector: string;
+  property: string;
+  weight: number;
+}
+
 interface RawColor {
   hex: Hex;
   oklch: { l: number; c: number; h: number };
   selectors: string[];
   occurrences: number;
   brandIntent: number;
+  provenance: RawProvenance[];
 }
 
 interface ColorCluster extends RawColor {}
@@ -283,13 +295,22 @@ function collectRawColors(
 ): RawColor[] {
   const map = new Map<Hex, RawColor>();
 
-  const addOccurrence = (hex: Hex, selector: string, weight: number) => {
+  const addOccurrence = (
+    hex: Hex,
+    selector: string,
+    property: string,
+    weight: number
+  ) => {
     const existing = map.get(hex);
     if (existing) {
       map.set(hex, {
         ...existing,
         selectors: [...existing.selectors, selector],
         occurrences: existing.occurrences + weight,
+        provenance: [
+          ...existing.provenance,
+          { selector, property, weight },
+        ],
       });
       return;
     }
@@ -301,6 +322,7 @@ function collectRawColors(
       selectors: [selector],
       occurrences: weight,
       brandIntent: brandHints.get(hex)?.weight ?? 0,
+      provenance: [{ selector, property, weight }],
     });
   };
 
@@ -315,7 +337,7 @@ function collectRawColors(
       if (isCustomProp) {
         const synth = parseAnyColor(value);
         if (synth) {
-          addOccurrence(synth, rule.selector, weight);
+          addOccurrence(synth, rule.selector, property, weight);
           continue;
         }
       }
@@ -326,7 +348,7 @@ function collectRawColors(
       for (const m of matches) {
         const hex = toHex(m);
         if (!hex) continue;
-        addOccurrence(hex, rule.selector, weight);
+        addOccurrence(hex, rule.selector, property, weight);
       }
     }
   }
@@ -369,6 +391,7 @@ function clusterColors(colors: RawColor[]): ColorCluster[] {
       bucket.selectors = [...bucket.selectors, ...color.selectors];
       bucket.occurrences += color.occurrences;
       bucket.brandIntent = Math.max(bucket.brandIntent, color.brandIntent);
+      bucket.provenance = [...bucket.provenance, ...color.provenance];
     } else {
       clusters.push({ ...color });
     }
@@ -387,6 +410,7 @@ interface ClassifiedColor {
   role: "primary" | "neutral" | "semantic";
   semanticKind?: SemanticKind;
   usage: string;
+  provenance: RawProvenance[];
 }
 
 function classify(cluster: ColorCluster): ClassifiedColor {
@@ -433,7 +457,39 @@ function classify(cluster: ColorCluster): ClassifiedColor {
     role,
     semanticKind: semantic,
     usage,
+    provenance: cluster.provenance,
   };
+}
+
+const MAX_SELECTOR_DISPLAY = 240;
+const PROVENANCE_TOP_N = 6;
+
+/**
+ * Reduce a cluster's full provenance list (often hundreds of entries on a
+ * heavy palette) to the top-N most-cited unique selector+property pairs.
+ * Truncate selectors that are unreasonably long so the modal stays readable.
+ */
+function topProvenance(raw: RawProvenance[]): ProvenanceEntry[] {
+  const buckets = new Map<string, ProvenanceEntry>();
+  for (const r of raw) {
+    const key = `${r.selector} ${r.property}`;
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.weight += r.weight;
+      continue;
+    }
+    buckets.set(key, {
+      selector:
+        r.selector.length > MAX_SELECTOR_DISPLAY
+          ? r.selector.slice(0, MAX_SELECTOR_DISPLAY) + "…"
+          : r.selector,
+      property: r.property,
+      weight: r.weight,
+    });
+  }
+  return [...buckets.values()]
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, PROVENANCE_TOP_N);
 }
 
 const SEMANTIC_CONTEXT_REGEX =
@@ -523,6 +579,7 @@ function groupByRole(items: ClassifiedColor[]): {
       semanticKind: c.semanticKind,
       usage: semanticUsageLabel(c.semanticKind),
       occurrences: Math.max(1, Math.round(c.occurrences)),
+      provenance: topProvenance(c.provenance),
     });
   }
 
@@ -542,6 +599,7 @@ function toToken(
     role,
     usage: c.usage,
     occurrences: Math.max(1, Math.round(c.occurrences)),
+    provenance: topProvenance(c.provenance),
   };
 }
 

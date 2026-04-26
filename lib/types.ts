@@ -11,6 +11,19 @@ export type ColorRole = "primary" | "neutral" | "semantic";
 
 export type SemanticKind = "error" | "warning" | "success" | "info";
 
+/**
+ * A single CSS rule that contributed to a token. Lets the UI prove
+ * provenance — every value cites where it came from.
+ */
+export interface ProvenanceEntry {
+  /** Full CSS selector text (truncated to a sane max length). */
+  selector: string;
+  /** The CSS property the colour appeared in (`color`, `background-color`, `--brand`, …). */
+  property: string;
+  /** The scoring weight this declaration contributed (post all multipliers). */
+  weight: number;
+}
+
 export interface ColorToken {
   name: string;
   hex: Hex;
@@ -19,6 +32,8 @@ export interface ColorToken {
   semanticKind?: SemanticKind;
   usage: string;
   occurrences: number;
+  /** Top-N selectors that declared this colour. Empty if no DOM information was available. */
+  provenance?: ProvenanceEntry[];
 }
 
 export interface FontStack {

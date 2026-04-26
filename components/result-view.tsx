@@ -14,6 +14,7 @@ import { useExtractStore, useAiSettings } from "@/lib/store";
 import type { ColorToken, ExtractedTokens, TypographyRole } from "@/lib/types";
 import { AiProseDialog } from "@/components/ai-prose-dialog";
 import { AiProseSection } from "@/components/ai-prose-section";
+import { SwatchProvenanceDialog } from "@/components/swatch-provenance-dialog";
 
 type Tab = "preview" | "markdown" | "tokens";
 
@@ -455,55 +456,69 @@ function SwatchGrid({
 }
 
 function Swatch({ token }: { token: ColorToken }) {
-  const [copied, setCopied] = React.useState(false);
-  function copy(e: React.MouseEvent) {
+  const [open, setOpen] = React.useState(false);
+
+  function openWithCopy(e: React.MouseEvent | React.KeyboardEvent) {
     e.stopPropagation();
     navigator.clipboard?.writeText(token.hex).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 900);
+    setOpen(true);
   }
+
   return (
-    <div
-      className="swatch"
-      onClick={copy}
-      title="click to copy hex"
-      role="button"
-      tabIndex={0}
-    >
-      <div className="swatch-fill" style={{ background: token.hex }} />
-      <div className="swatch-meta">
-        <div className="row" style={{ justifyContent: "space-between" }}>
-          <span className="swatch-name">{token.name}</span>
-          <span
-            style={{
-              fontSize: 10,
-              color: copied ? "var(--signal)" : "var(--fg-faint)",
-              letterSpacing: "0.04em",
-            }}
-          >
-            {copied ? "COPIED" : "⌘C"}
-          </span>
-        </div>
-        <span className="swatch-hex">{token.hex.toUpperCase()}</span>
-        <div className="row" style={{ justifyContent: "space-between" }}>
-          <span className="swatch-use">{token.usage}</span>
-          <span
-            className="t-caption"
-            title={`${token.occurrences} CSS rule${
-              token.occurrences === 1 ? "" : "s"
-            } cite this colour`}
-            style={{
-              fontSize: 10,
-              color: "var(--fg-faint)",
-              letterSpacing: "0.04em",
-              fontFeatureSettings: "'tnum' on",
-            }}
-          >
-            {token.occurrences} CITES
-          </span>
+    <>
+      <div
+        className="swatch"
+        onClick={openWithCopy}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openWithCopy(e);
+          }
+        }}
+        title="open provenance · copy hex"
+        role="button"
+        tabIndex={0}
+      >
+        <div className="swatch-fill" style={{ background: token.hex }} />
+        <div className="swatch-meta">
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <span className="swatch-name">{token.name}</span>
+            <span
+              style={{
+                fontSize: 10,
+                color: "var(--fg-faint)",
+                letterSpacing: "0.04em",
+              }}
+            >
+              CITED
+            </span>
+          </div>
+          <span className="swatch-hex">{token.hex.toUpperCase()}</span>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <span className="swatch-use">{token.usage}</span>
+            <span
+              className="t-caption"
+              title={`${token.occurrences} CSS rule${
+                token.occurrences === 1 ? "" : "s"
+              } cite this colour`}
+              style={{
+                fontSize: 10,
+                color: "var(--fg-faint)",
+                letterSpacing: "0.04em",
+                fontFeatureSettings: "'tnum' on",
+              }}
+            >
+              {token.occurrences} CITES
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+      <SwatchProvenanceDialog
+        token={token}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
   );
 }
 

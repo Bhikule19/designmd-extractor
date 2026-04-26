@@ -1,9 +1,20 @@
-import type { ExtractedTokens } from "@/lib/types";
+import type { ExtractedTokens, ProvenanceEntry } from "@/lib/types";
+
+interface ProvenanceJson {
+  selector: string;
+  property: string;
+  weight: number;
+}
 
 interface DesignTokenLeaf {
   $value: string | number;
   $type: string;
   $description?: string;
+  /**
+   * Non-standard W3C extension. Lists the top CSS rules that declared this
+   * token, so consumers can audit deterministic-extracted values.
+   */
+  $provenance?: ProvenanceJson[];
 }
 
 interface DesignTokenGroup {
@@ -66,13 +77,25 @@ function groupColors(
   list: ExtractedTokens["colors"]["primary"]
 ): DesignTokenGroup {
   return list.reduce<DesignTokenGroup>((acc, t) => {
-    acc[t.name] = {
+    const leaf: DesignTokenLeaf = {
       $value: t.hex,
       $type: "color",
       $description: t.usage,
     };
+    if (t.provenance && t.provenance.length > 0) {
+      leaf.$provenance = t.provenance.map(toProvenanceJson);
+    }
+    acc[t.name] = leaf;
     return acc;
   }, {});
+}
+
+function toProvenanceJson(p: ProvenanceEntry): ProvenanceJson {
+  return {
+    selector: p.selector,
+    property: p.property,
+    weight: Math.round(p.weight * 1000) / 1000,
+  };
 }
 
 export function renderTokensJsonString(tokens: ExtractedTokens): string {
