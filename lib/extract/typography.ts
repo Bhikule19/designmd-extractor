@@ -63,22 +63,75 @@ function resolveVar(
   );
 }
 
+interface ScoredFont {
+  stack: FontStack;
+  score: number;
+}
+
+function selectorWeight(selector: string): number {
+  const s = selector.toLowerCase();
+  if (/^\s*(:root|html|body)\s*$/.test(s)) return 100;
+  if (/(^|[\s,>+~])(html|body)(\b|,|$)/.test(s)) return 80;
+  if (/(^|[\s,>+~])h[1-6](\b|,|$)/.test(s)) return 40;
+  if (/(^|[\s,>+~])p(\b|\s|,|$)/.test(s)) return 20;
+  if (/(button|input|select|textarea|legend|fieldset|optgroup)/.test(s)) {
+    return 1;
+  }
+  return 5;
+}
+
+function isMonoFamily(name: string): boolean {
+  return /(mono|code|courier|console|menlo|consolas|jetbrains|fira)/i.test(name);
+}
+
 function extractFontStacks(
   parsed: ParsedCss,
   fontVars: Map<string, string>
 ): FontStack[] {
-  const stacksByPrimary = new Map<string, FontStack>();
+  const scored = new Map<string, ScoredFont>();
+
+  // Custom-property declared font intent gets highest priority
+  for (const cp of parsed.customProperties) {
+    if (!/font|family/i.test(cp.name)) continue;
+    if (!/(brand|primary|default|sans|body|heading|display|mono|family)/i.test(cp.name)) {
+      continue;
+    }
+    const resolved = resolveVar(cp.value, fontVars);
+    const stack = parseFontFamily(resolved);
+    if (!stack) continue;
+    const key = stack.family.toLowerCase();
+    const boost = /brand|default|primary|sans|body/i.test(cp.name) ? 200 : 60;
+    const existing = scored.get(key);
+    if (!existing || boost > existing.score) {
+      scored.set(key, { stack, score: boost });
+    }
+  }
+
   for (const rule of parsed.rules) {
     const ff = rule.declarations["font-family"];
     if (!ff) continue;
     const resolved = resolveVar(ff, fontVars);
     const stack = parseFontFamily(resolved);
     if (!stack) continue;
-    if (!stacksByPrimary.has(stack.family.toLowerCase())) {
-      stacksByPrimary.set(stack.family.toLowerCase(), stack);
+    const key = stack.family.toLowerCase();
+    const weight = selectorWeight(rule.selector);
+    const existing = scored.get(key);
+    if (existing) {
+      existing.score += weight;
+    } else {
+      scored.set(key, { stack, score: weight });
     }
   }
-  return [...stacksByPrimary.values()].slice(0, 4);
+
+  const sorted = [...scored.values()].sort((a, b) => b.score - a.score);
+
+  // Ensure primary text font comes first (non-mono), mono fonts after
+  const textFonts = sorted.filter((s) => !isMonoFamily(s.stack.family));
+  const monoFonts = sorted.filter((s) => isMonoFamily(s.stack.family));
+
+  return [...textFonts, ...monoFonts]
+    .slice(0, 4)
+    .map((s) => s.stack);
 }
 
 function parseFontFamily(value: string): FontStack | null {
