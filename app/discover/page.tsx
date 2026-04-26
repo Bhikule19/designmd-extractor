@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DISCOVER_ENTRIES } from "@/lib/discover";
+import { TrackPageView } from "@/components/track-page-view";
 
 export const metadata = {
   title: "Discover · design.md/extractor",
@@ -11,6 +12,7 @@ export const metadata = {
 export default function DiscoverPage() {
   return (
     <div style={{ paddingTop: 56, paddingBottom: 40 }}>
+      <TrackPageView event="discover" />
       <div style={{ display: "grid", gap: 12, marginBottom: 36, maxWidth: 720 }}>
         <div className="row" style={{ gap: 10 }}>
           <span className="t-caption signal-text">// discover</span>

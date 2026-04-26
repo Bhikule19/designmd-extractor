@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { ResultView } from "@/components/result-view";
 import { findDiscoverEntry } from "@/lib/discover";
 import { extract } from "@/lib/extract";
+import { TrackPageView } from "@/components/track-page-view";
 
 export const revalidate = 86400;
 
@@ -75,6 +76,7 @@ export default async function DiscoverDetailPage({
 
   return (
     <div style={{ paddingTop: 0 }}>
+      <TrackPageView event="discover" slug={slug} />
       <div
         style={{
           padding: "12px 0",
