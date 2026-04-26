@@ -13,6 +13,79 @@ const ENTRIES: Entry[] = [
   {
     date: "2026-04-26",
     tag: "shipped",
+    title: "v0.1.0 — IDE-native UI, cite provenance, compare mode",
+    body: (
+      <>
+        Big release. The UI moves to a dark-canonical, mono-first IDE pane with
+        an amber signal colour and JetBrains Mono + Inter Tight; the result
+        page now streams a <code>[ HH:MM:SS ]</code> terminal log during
+        extraction. Every colour swatch is clickable — opens a modal listing
+        the actual CSS rules that declared it, with selector + property name.
+        New <code>/compare</code> page diffs two URLs side by side: colours
+        align by OKLCH ΔE, type roles by name, spacing/radius by ±1px. Token
+        accuracy on Tailwind / Radix / WordPress sites is dramatically better
+        thanks to a DOM class allowlist and theme-color / web-manifest
+        signals.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
+    title: "Compare mode (/compare)",
+    body: (
+      <>
+        Paste two URLs. Three columns per category: <em>A only</em>,{" "}
+        <em>shared</em>, <em>B only</em>. Brand audits, competitive intel,
+        migration planning. Built on the same deterministic pipeline — no
+        screenshots, no model.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
+    title: "Cite-first transparency on every colour",
+    body: (
+      <>
+        Click any swatch → modal shows the top CSS rules that declared this
+        colour, with selector and property name. The Tokens JSON gains a{" "}
+        <code>$provenance</code> field per token. The deterministic
+        differentiator — vision-LLM extractors literally can&apos;t do this.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
+    title: "Dark-canonical, mono-first redesign",
+    body: (
+      <>
+        New token system, new fonts, prompt-style URL input with a{" "}
+        <code>$</code> glyph and signal-coloured focus, streaming terminal
+        log on extraction, <code>man</code>-page-style line-gutter Markdown
+        viewer, syntax-highlighted JSON tab. Light mode is a faithful port.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "improvement",
+    title: "DOM class allowlist + theme-color signals",
+    body: (
+      <>
+        CSS rules whose selectors target a class actually present in the
+        HTML get a 4× boost; rules targeting unused classes drop to 0.01×.
+        <code>&lt;meta name=&quot;theme-color&quot;&gt;</code> and the web
+        manifest <code>theme_color</code> feed brand-intent at high weight.
+        Fixes the &quot;rule for unused class wins the brand vote&quot;
+        failure on Tailwind sites.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
     title: "v0.0.1 — first public release",
     body: (
       <>
