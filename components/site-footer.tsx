@@ -6,7 +6,7 @@ export function SiteFooter() {
           <span className="logo-dot" aria-hidden />
           <span>
             design.md<span className="faint">/</span>extractor{" "}
-            <span className="faint">·</span> v0.1.0
+            <span className="faint">·</span> v0.2.0
           </span>
         </div>
         <div className="footer-meta">

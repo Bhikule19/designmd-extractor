@@ -13,6 +13,25 @@ const ENTRIES: Entry[] = [
   {
     date: "2026-04-26",
     tag: "shipped",
+    title: "v0.2.0 — light/dark toggle, header & footer polish",
+    body: (
+      <>
+        Pick your palette. A new toggle in the header flips the app between
+        the dark IDE pane and a paper-thermal-printer light port; the choice
+        persists in <code>localStorage</code> and is applied before React
+        hydrates, so first paint always matches your preference. The header
+        is trimmed to the four canonical actions, both wordmark and nav
+        bumped to 15px for a more confident presence. Footer is now a single
+        line: version on the left, &quot;built by @Bhikule19&quot; on the
+        right. The optional BYOK AI prose layer is parked behind a 501 stub
+        until the productionised flow is ready — extraction itself remains
+        100% deterministic.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
     title: "v0.1.0 — IDE-native UI, cite provenance, compare mode",
     body: (
       <>
