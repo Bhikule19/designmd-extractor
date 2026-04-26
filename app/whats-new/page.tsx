@@ -13,6 +13,22 @@ const ENTRIES: Entry[] = [
   {
     date: "2026-04-26",
     tag: "shipped",
+    title: "v0.4.0 — Vercel Analytics wired",
+    body: (
+      <>
+        Adds <code>@vercel/analytics</code> so the Vercel dashboard surfaces
+        traffic shape — pageviews, unique visitors, top referrers, countries,
+        devices — without cookies or PII. Layered with the v0.3.0{" "}
+        <code>/stats</code> KPI counters: <code>/stats</code> answers
+        &quot;how is the product being used?&quot; (DESIGN.md generated,
+        downloads, compares, discover visits), Vercel Analytics answers
+        &quot;who showed up, and where from?&quot;. Both are zero-PII.
+      </>
+    ),
+  },
+  {
+    date: "2026-04-26",
+    tag: "shipped",
     title: "v0.3.0 — public KPI counters and /stats",
     body: (
       <>

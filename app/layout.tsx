@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Inter_Tight } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -44,6 +46,12 @@ export default function RootLayout({
         <SiteHeader />
         <main className="main">{children}</main>
         <SiteFooter />
+        {/* Vercel Analytics — anonymous traffic + referrer dashboard.
+            Only loads on production deployments; no-op locally. */}
+        <Analytics />
+        {/* Vercel Speed Insights — Core Web Vitals (LCP / INP / CLS) from
+            real users in production. Same no-op-locally guarantee. */}
+        <SpeedInsights />
       </body>
     </html>
   );
